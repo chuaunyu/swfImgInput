@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>SWFImageInput Demo</title>
+
+    <style>
+        *{margin:0px;padding:0px;}
+        .ct{
+            border-radius:4px;
+            border:1px solid #ccc;
+            display:inline-block;
+            margin:20px;
+        }
+
+        .img-ct{
+            width:200px;
+            height:200px;
+            text-align:center;
+        }
+
+        .img-ct img{
+            max-width:200px;
+            max-height:200px;
+            display:none;
+        }
+
+        .img-ct.active img{
+            display:inline-block;
+        }
+
+        .bar{
+            background-color:RGB(246, 246, 246);
+            border-top:1px solid #ccc;
+            text-align:center;
+        }
+
+        .btn{
+            margin:5px;
+            padding:0px 10px;
+            background-color:#fff;
+            display:inline-block;
+            height:32px;
+            line-height:32px;
+            vertical-align:middle;
+            cursor:pointer;
+            border-radius:3px;
+            border:1px solid #ccc;
+        }
+
+        .log-ct{
+        }
+
+        .log-ct, .log{
+            display:block;
+            width:500px;
+        }
+
+        .log{
+            overflow:auto;
+            height:180px;
+        }
+
+        .header{
+            padding:0px 5px;
+            height:34px;
+            line-height:34px;
+            background-color:RGB(246, 246, 246);
+            border-bottom:1px solid #ccc;
+            border-radius:4px 4px 0px 0px;
+            width:100%;
+            box-sizing:border-box;
+        }
+
+        .row{
+            padding:5px;
+        }
+
+        .about{
+            margin:20px;
+            padding:0px 5px;
+            border-radius:4px;
+            border:1px solid #ccc;
+            background:RGB(246, 246, 246);
+            height:34px;
+            line-height:34px;
+        }
+
+    </style>
+
+
+</head>
+<body>
+    <div class="about">
+        flash图片上传阅览控件DEMO- <a href="https://github.com/ouch1985/swfImgInput">代码下载(gitHub)</a> - 作者:ouchuanyu@163.com/<a href="www.ouchuanyu.com">www.ouchuanyu.com</a>
+    </div>
+    <div class="ct">
+        <div class="img-ct">
+        </div>
+        <div class="bar">
+            <span class="btn" id="swfInputBtn">...</span>
+            <span class="btn" id="submitBtn">上传</span>
+        </div>
+    </div>
+
+    <div class="log-ct ct">
+        <div class="header">
+            <span>Log</span>
+        </div>
+        <div class="log">
+
+        </div>
+    </div>
+
+    <script src="http://code.jquery.com/jquery-1.11.2.min.js"></script>
+    <script src="http://jquery.thewikies.com/swfobject/jquery.swfobject.1-1-1.min.js"></script>
+
+    <script>
+        function log(){
+            var html = '<div class="row">';
+            for(var i=0;i<arguments.length;i++){
+                html += '<span>' + JSON.stringify(arguments[i]) + '</span>';
+            }
+            html += '</div>';
+            $('.log').append(html);
+        }
+
+        $(function(){
+            // 初始化flash文件选择按钮
+            $('#swfInputBtn').flash({
+                swf:'./dist/ImageUpload.swf?version=1.0.0',
+                wmode : 'transparent',
+                width : 50,
+                height : 34,
+                flashvars : {
+                    jsId : 'swfInput', //jsId用来处理区分同一个页面创建了N个swf的请求, flash回调JS都会带上jsId
+                    fontSize : 13,
+                    txt : '<a>选择</a>'
+                },
+                allowScriptAccess : 'always'
+            });
+
+            // 监听swf通知JS的事件
+            window.swfNotice = function(msg){
+                log('Receive msg from swf!', msg);
+                var rs = JSON.parse(msg);
+
+                var event = rs.event;
+                if(event === 'ready'){
+                    log('SWFInput Ready');
+                }else if(event === 'imgUrl'){
+                    $('.img-ct').addClass('active');
+                    var img = new Image();
+                    img.src = rs.data.base64Data;
+                    $('.img-ct').children().remove();
+                    $('.img-ct').append($(img));
+                }else if(event === 'uploadError'){
+                    log('Upload error!');
+                }else if(event === 'uploadSuccess'){
+                    log('Upload error!');
+                }
+            }
+
+            $('#submitBtn').on('click', function(){
+                var inputItems = [];
+
+                inputItems.push({
+                    name : 'fileName',
+                    val : 'aaa.png',
+                    type : 'txt'
+                });
+
+                inputItems.push({
+                    name : 'file',
+                    val : 'aaa.png',
+                    type : 'file'
+                });
+
+                $('#swfInputBtn').flash(function(){
+                    // flash提交表单的方法, 第一个参数是提交的URL地址
+                    // 第二个参数是表单的各个字段, 其中 type=file表示当前的图片文件
+                    this.swfSubmit('http://yourSubmitUrl.com', JSON.stringify(inputItems));
+                });
+            });
+        });
+
+    </script>
+</body>
+</html>
